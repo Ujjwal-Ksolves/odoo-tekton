@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: odoo-vol
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: "/mnt/odoo-addons"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: odoo-pvclaim
+spec:
+  volumeName: odoo-vol
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: odoo
+spec:
+  #clusterIP: None
+  selector:
+    app: odoo-app
+  ports:
+    - protocol: TCP
+      port: 8069
+      targetPort: 8069
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: odoo
+spec:
+  selector:
+    matchLabels:
+      app: odoo-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: odoo-app
+    spec:
+      volumes:
+        - name: odoo-vol
+          persistentVolumeClaim:
+            claimName: odoo-pvclaim
+      containers:
+        - name: mysql-odoo
+          image: odoo:16.0
+          env:
+            - name: POSTGRES_USER
+              value: odoo
+            - name: POSTGRES_PASSWORD
+              value: odoo
+            - name: POSTGRES_HOST
+              value: odoo
+            - name: POSTGRES_DB
+              value: odoo
+          ports:
+            - containerPort: 8069
+          volumeMounts:
+            - mountPath: "/mnt/odoo-addons"
+              name: odoo-vol
+          command: ["bash","-c","odoo server --db_host=db -r odoo -w odoo -d odoo -u all"]
+
