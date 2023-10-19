@@ -1,0 +1,2 @@
+kubernetes-client==0.1.8
+python-ldap
