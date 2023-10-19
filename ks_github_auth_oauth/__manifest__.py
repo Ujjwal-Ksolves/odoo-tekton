@@ -1,5 +1,5 @@
 {
-    'name': "Odoo Github Authenticator",
+    'name': "Odoo Github Authenticator application",
     'summary': """
                 Odoo Github Authenticator helps to authenticate github user to odoo. Thus helping github
                 user to login on odoo with Github User ID. When user login with Github, 
